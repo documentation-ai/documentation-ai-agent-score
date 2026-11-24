@@ -8,6 +8,8 @@ import {
   type ScoreResult,
 } from 'afdocs';
 
+// Replaces the slow steps in the parser AFDocs' checks read pages with.
+import '../htmlParser';
 import { RobotsDisallowedError } from '../transport/errors';
 import type { ScanHttpClient } from '../transport/guardedFetch';
 

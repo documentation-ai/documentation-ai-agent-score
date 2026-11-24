@@ -68,7 +68,7 @@ const models = await createAnswerabilityModels({
 const { report: full, answerabilityCostUsd } = await scanSite('https://docs.example.com', { models });
 ```
 
-`scanSite` runs every stage in one call; pass `onProgress` to get a short message at each step, as the CLI shows them. To run the stages as separate jobs, as the hosted scanner does, call `resolveTarget`, `runTechnicalAssessment`, `runAnswerability` and `finalizeReport` yourself. The report's shape is exported as the `AgentScoreReport` type.
+`scanSite` runs every stage in one call; pass `onProgress` to get a short message at each step, as the CLI shows them. To run the stages as separate jobs, as the hosted scanner does, call `resolveTarget`, `runTechnicalAssessmentInWorker`, `runAnswerability` and `finalizeReport` yourself. The technical assessment runs in a worker thread, so a page that keeps a parser busy cannot block your process; a scan that needs more than five minutes or 512 MB is stopped with a `ScanStoppedError`. The report's shape is exported as the `AgentScoreReport` type.
 
 ## How the scanner behaves on your site
 

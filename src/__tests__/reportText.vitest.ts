@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { emptyAnswerability } from '../answerability/runAnswerability';
+import { emptyAnswerability } from '../answerability/emptyAnswerability';
 import type { AdditionalCheck, AgentScoreReport, ReportCheck } from '../report.types';
 import { buildFixPrompt } from '../reportText';
 

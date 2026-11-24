@@ -1,4 +1,4 @@
-import { parse, type HTMLElement } from 'node-html-parser';
+import { parse, type HTMLElement } from '../htmlParser';
 
 import type { PlatformId, PlatformResult } from '../report.types';
 

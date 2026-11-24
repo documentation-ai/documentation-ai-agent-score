@@ -137,6 +137,7 @@ export class GuardedFetcher implements ScanHttpClient {
     this.scheduler = new OriginScheduler(
       options.minIntervalMs,
       options.maxConcurrentPerOrigin,
+      options.deadline || undefined,
     );
     this.robots = new RobotsPolicy(options.robotsToken, (url) =>
       this.fetchWithoutRobots(url),

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { emptyAnswerability } from '../answerability/runAnswerability';
+import { emptyAnswerability } from '../answerability/emptyAnswerability';
 import { finalLimitations } from '../finalize';
 import { nameFromDomain } from '../reportText';
 import type { OverallScore } from '../report.types';

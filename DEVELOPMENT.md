@@ -19,6 +19,7 @@ This repository is the engine's only home. The hosted scanner at [documentation.
 - Only `src/cli.ts` reads environment variables. Everything else takes its settings as arguments, so the hosted scanner and the CLI run the same code.
 - Any change that can move a score needs a new `METHODOLOGY_VERSION` in `src/methodology.ts`, because scores from different versions are not comparable.
 - AFDocs is pinned to an exact version. `src/__tests__/packageVersions.vitest.ts` checks it matches `AFDOCS_VERSION`, and that `ENGINE_VERSION` matches `version` in `package.json`.
+- The HTML parser (`node-html-parser`) is pinned to `HTML_PARSER_VERSION` in the same way, because `src/htmlParser.ts` replaces two slow steps inside it. Its test compares every result with the original parser's.
 - The crawler list in `src/checks/crawlerAccess.ts` names each provider's published robots.txt policy and the date it was read; re-read the sources before changing it.
 
 ## Releasing

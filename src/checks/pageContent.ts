@@ -1,4 +1,4 @@
-import { parse, type HTMLElement } from 'node-html-parser';
+import { parse, type HTMLElement } from '../htmlParser';
 
 /**
  * Reads what the checks need out of a fetched HTML page: the article text,

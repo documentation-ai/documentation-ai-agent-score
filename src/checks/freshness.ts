@@ -1,5 +1,4 @@
-import { parse } from 'node-html-parser';
-
+import { parse } from '../htmlParser';
 import { classifyFetchError } from '../transport/errors';
 import type { ReportCheck } from '../report.types';
 import type { CheckInput } from './checkInput';

@@ -6,6 +6,7 @@ import {
 } from '../methodology';
 import type { AnswerabilityResult, TranscriptEntry } from '../report.types';
 import { diagnose, samePage, type FailureCause } from './diagnose';
+import { emptyAnswerability } from './emptyAnswerability';
 import { generateQuestions } from './generateQuestions';
 import { judgeAnswer, type Judgement } from './judgeAnswer';
 import { solveQuestion } from './solveQuestion';
@@ -26,25 +27,6 @@ import type {
  * excluded rather than scored; fewer than five gradable questions leaves the
  * part unavailable.
  */
-
-/** An Answerability result with nothing measured yet, or nothing measurable. */
-export function emptyAnswerability(
-  state: 'pending' | 'unavailable',
-  reason?: string,
-  models?: AnswerabilityResult['models'],
-): AnswerabilityResult {
-  return {
-    state,
-    ...(reason && { reason }),
-    ...(models && { models }),
-    total: 0,
-    correct: 0,
-    retrieved: 0,
-    answered: 0,
-    supported: 0,
-    transcript: [],
-  };
-}
 
 export async function runAnswerability(
   input: AnswerabilityInput,

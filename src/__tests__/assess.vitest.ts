@@ -65,6 +65,8 @@ describe('runTechnicalAssessment', () => {
       },
     );
 
+    // It comes back from a worker thread, so nothing in it may be lost in the copy.
+    expect(structuredClone(report)).toEqual(report);
     expect(report.schemaVersion).toBe(2);
     expect(report.stage).toBe('technical');
     expect(report.methodology.afdocsVersion).toBe(AFDOCS_VERSION);

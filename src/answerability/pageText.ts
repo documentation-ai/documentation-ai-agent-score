@@ -1,6 +1,7 @@
-import { parse } from 'node-html-parser';
 import TurndownService from 'turndown';
 import { tables } from 'turndown-plugin-gfm';
+
+import { parse } from '../htmlParser';
 
 /**
  * Page text as an agent receives it. Copied from AFDocs' helpers (MIT,

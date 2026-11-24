@@ -1,6 +1,6 @@
 /**
  * Agent Readiness Score engine. `scanSite` runs a whole scan; hosts that run
- * the stages as separate jobs call resolveTarget, runTechnicalAssessment,
+ * the stages as separate jobs call resolveTarget, runTechnicalAssessmentInWorker,
  * runAnswerability and finalizeReport themselves.
  */
 
@@ -12,7 +12,9 @@ export {
   type TechnicalAssessment,
   type TechnicalAssessmentInput,
 } from './assess';
-export { emptyAnswerability, estimateCostUsd, runAnswerability } from './answerability/runAnswerability';
+export { runTechnicalAssessmentInWorker } from './runTechnicalAssessmentInWorker';
+export { emptyAnswerability } from './answerability/emptyAnswerability';
+export { estimateCostUsd, runAnswerability } from './answerability/runAnswerability';
 export {
   AI_PROVIDERS,
   AiConfigError,
@@ -52,5 +54,6 @@ export {
   type UnscannableReason,
 } from './target/resolveTarget';
 export { baseDomain, fingerprintFor, guessScope, normalizeSubmittedUrl, scopeKey } from './target/scope';
+export { ScanStoppedError } from './transport/errors';
 export { BlockedTargetError } from './transport/publicAddress';
 export type * from './report.types';

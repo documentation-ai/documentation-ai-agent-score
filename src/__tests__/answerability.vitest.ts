@@ -4,7 +4,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { diagnose, samePage } from '../answerability/diagnose';
 import { selectValidQuestions } from '../answerability/generateQuestions';
-import { emptyAnswerability, estimateCostUsd, runAnswerability } from '../answerability/runAnswerability';
+import { emptyAnswerability } from '../answerability/emptyAnswerability';
+import { estimateCostUsd, runAnswerability } from '../answerability/runAnswerability';
 import { containsQuote } from '../answerability/sourcePages';
 import type {
   AnswerabilityModels,

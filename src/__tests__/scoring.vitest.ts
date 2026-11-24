@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { ourCheck } from '../checks/ourCheck';
-import { emptyAnswerability } from '../answerability/runAnswerability';
+import { emptyAnswerability } from '../answerability/emptyAnswerability';
 import type { AnswerabilityResult, ReportCheck } from '../report.types';
 import { answerabilityChecks, pickTopFixes, provisionalReasonsFor, scoreReport } from '../scoring';
 

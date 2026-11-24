@@ -6,7 +6,7 @@ import {
   type AfdocsRun,
   type AfdocsSample,
 } from './afdocs/runAfdocs';
-import { emptyAnswerability } from './answerability/runAnswerability';
+import { emptyAnswerability } from './answerability/emptyAnswerability';
 import { checkAgentSkills, checkLlmsFullTxt, checkMcpServer } from './checks/agentProtocols';
 import type { BaseCheckInput, CheckInput } from './checks/checkInput';
 import { checkCrawlerPermissions, checkSitemapCoverage } from './checks/crawlerAccess';

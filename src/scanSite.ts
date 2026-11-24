@@ -1,10 +1,11 @@
 import type { AnswerabilityModels } from './answerability/types';
 import { runAnswerability } from './answerability/runAnswerability';
-import { createScanFetcher, runTechnicalAssessment } from './assess';
+import { createScanFetcher } from './assess';
 import { finalizeReport } from './finalize';
 import { SCAN_LIMITS } from './methodology';
 import type { AgentScoreReport, ContentProfile } from './report.types';
 import { type ResolvedTarget, resolveTarget } from './target/resolveTarget';
+import { runTechnicalAssessmentInWorker } from './runTechnicalAssessmentInWorker';
 
 /**
  * A whole scan in one call: find the docs behind a URL, run the technical
@@ -40,7 +41,7 @@ export async function scanSite(url: string, options: ScanSiteOptions = {}): Prom
   onProgress?.(`Scanning ${resolved.target.key} (${resolved.target.profile})`);
 
   const reportUrl = options.reportUrl ?? reportUrlForKey(resolved.target.key);
-  const technical = await runTechnicalAssessment(
+  const technical = await runTechnicalAssessmentInWorker(
     {
       target: resolved.target,
       profileChosen: !!profile,

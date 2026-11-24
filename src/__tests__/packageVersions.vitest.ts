@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
-import { AFDOCS_VERSION, ENGINE_VERSION } from '../methodology';
+import { AFDOCS_VERSION, ENGINE_VERSION, HTML_PARSER_VERSION } from '../methodology';
 
 const manifest = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')) as {
   version: string;
@@ -16,5 +16,9 @@ describe('package versions', () => {
 
   it('pins AFDocs to exactly the version the methodology names', () => {
     expect(manifest.dependencies.afdocs).toBe(AFDOCS_VERSION);
+  });
+
+  it('pins the HTML parser to exactly the version htmlParser.ts replaces parts of', () => {
+    expect(manifest.dependencies['node-html-parser']).toBe(HTML_PARSER_VERSION);
   });
 });

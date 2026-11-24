@@ -43,6 +43,14 @@ export class ScanDeadlineError extends Error {
   }
 }
 
+/** The scan reached its worker's time or memory limit and was stopped; the same site would end the same way again. */
+export class ScanStoppedError extends Error {
+  constructor(limit: string) {
+    super(`The scan was stopped: it did not finish within ${limit}`);
+    this.name = 'ScanStoppedError';
+  }
+}
+
 export class TooManyRedirectsError extends Error {
   constructor(url: string, limit: number) {
     super(`${url} redirected more than ${limit} times`);

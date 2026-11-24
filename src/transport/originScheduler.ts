@@ -20,6 +20,8 @@ export class OriginScheduler {
   constructor(
     private readonly defaultIntervalMs: number,
     private readonly maxConcurrent: number,
+    /** Epoch ms after which a request is refused, so none waits for longer than that. */
+    private readonly deadline = Infinity,
   ) {}
 
   /** Raises one origin's spacing, e.g. for its robots.txt Crawl-delay. */
@@ -43,7 +45,8 @@ export class OriginScheduler {
     try {
       const startAt = Math.max(Date.now(), state.nextStartAt);
       state.nextStartAt = startAt + state.intervalMs;
-      const wait = startAt - Date.now();
+      // A timer can fire a millisecond early; one past the deadline is never before it.
+      const wait = Math.min(startAt, this.deadline + 1) - Date.now();
       if (wait > 0) await sleep(wait);
       return await task();
     } finally {

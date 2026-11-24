@@ -8,9 +8,11 @@ import type { Grade } from './report.types';
 
 export const METHODOLOGY_VERSION = '2026-09.6';
 /** The engine's own version, recorded in every report; the npm version once the engine is published. */
-export const ENGINE_VERSION = '0.2.1';
+export const ENGINE_VERSION = '0.2.2';
 /** Pinned exactly in package.json; packageVersions.vitest.ts keeps the two in step. */
 export const AFDOCS_VERSION = '0.20.0';
+/** Pinned exactly too: htmlParser.ts replaces parts of this version's code. */
+export const HTML_PARSER_VERSION = '7.1.0';
 
 /**
  * Points for our own checks, on AFDocs' scale: critical 10, high 7, medium 4,
@@ -69,6 +71,10 @@ export const SCAN_LIMITS = {
   /** Pages AFDocs and our page checks read; 15 matches what Mintlify's checker samples. */
   samplePages: 15,
   technicalDeadlineMs: 150_000,
+  /** When a scan still busy after its deadline is stopped; generous, since five scans can share a CPU. */
+  technicalHardLimitMs: 300_000,
+  /** Heap of one scan's worker. The largest sites tested fit in 384 MB, and five at once use less than one shared heap did. */
+  workerMemoryMb: 512,
   requestTimeoutMs: 15_000,
   /** Real docs pages reach 5 MB (license lists); a cut-off page reads as broken Markdown. */
   maxBodyBytes: 10 * 1024 * 1024,

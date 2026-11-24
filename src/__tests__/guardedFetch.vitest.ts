@@ -216,6 +216,21 @@ describe('limits', () => {
     expect(starts[2] - starts[1]).toBeGreaterThanOrEqual(130);
   });
 
+  it('empties the queue at the deadline instead of spacing requests it will refuse', async () => {
+    const { site, fetcher } = await setUp(
+      { '/robots.txt': { status: 404 }, '/docs': { body: 'docs' } },
+      { minIntervalMs: 500, deadline: Date.now() + 800 },
+    );
+    const startedAt = Date.now();
+    const results = await Promise.allSettled(
+      Array.from({ length: 20 }, (_, index) => fetcher.fetch(`${site.origin}/docs?page=${index}`)),
+    );
+    expect(Date.now() - startedAt).toBeLessThan(2_500);
+    const refused = results.filter((result) => result.status === 'rejected');
+    expect(refused.length).toBeGreaterThan(15);
+    for (const result of refused) expect(classifyFetchError(result.reason)).toBe('deadline');
+  });
+
   it('waits out a short Retry-After and tries again', async () => {
     const { site, fetcher } = await setUp({
       '/busy': (_request, hit) =>
