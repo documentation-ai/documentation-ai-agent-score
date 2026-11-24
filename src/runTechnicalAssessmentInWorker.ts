@@ -1,50 +1,64 @@
+import { fork, type ChildProcess } from 'node:child_process';
+import { once } from 'node:events';
 import { createRequire } from 'node:module';
-import { pathToFileURL } from 'node:url';
-import { Worker } from 'node:worker_threads';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import type { EngineOptions, TechnicalAssessment, TechnicalAssessmentInput } from './assess';
 import { SCAN_LIMITS } from './methodology';
 import { ScanStoppedError } from './transport/errors';
 
 /**
- * The technical assessment in a worker thread of its own. Its checks parse
- * whatever a site serves, and a page that keeps a parser busy blocks the thread
- * it runs in: no timer, deadline or other job there runs meanwhile. Here that
- * is only the worker, so the host carries on and stops it at the hard limit. A
- * scan that needs more memory than its worker may use fails by itself too.
+ * The technical assessment in a worker process of its own. Its checks parse
+ * whatever a site serves, and a page can keep a parser busy or use up memory;
+ * either would stop everything else in the process it runs in. Here that is
+ * only the worker, so the host carries on and stops it at its limits. A thread
+ * would not do: running out of memory in one can abort the host (Node 24).
  */
 
-export type WorkerMessage = { progress: string } | { assessment: TechnicalAssessment };
+export type WorkerMessage =
+  | { progress: string }
+  | { assessment: TechnicalAssessment }
+  | { failure: { name: string; message: string } };
+
+/** How a process that used up its memory ends: Node aborts it, or the system kills it. */
+const OUT_OF_MEMORY_EXITS = ['SIGABRT', 134, 'SIGKILL', 137];
 
 export async function runTechnicalAssessmentInWorker(
   input: TechnicalAssessmentInput,
   { onProgress }: Pick<EngineOptions, 'onProgress'> = {},
 ): Promise<TechnicalAssessment> {
-  const worker = startWorker(input);
+  const worker = startWorker();
   try {
+    worker.send(input);
     return await waitForAssessment(worker, onProgress);
   } finally {
-    await worker.terminate();
+    await stopWorker(worker);
   }
 }
 
-function startWorker(workerData: TechnicalAssessmentInput): Worker {
-  const { file, execArgv } = getWorkerEntry();
-  return new Worker(new URL(file, import.meta.url), {
-    workerData,
-    execArgv,
-    resourceLimits: { maxOldGenerationSizeMb: SCAN_LIMITS.workerMemoryMb },
+/** Run from source (tests, `npm run check`), the worker needs tsx to load TypeScript; the built one does not. */
+function startWorker(): ChildProcess {
+  const isSource = import.meta.url.endsWith('.ts');
+  const file = isSource ? './technicalAssessmentWorker.ts' : './technicalAssessmentWorker.js';
+  const loader = isSource ? ['--import', pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href] : [];
+  return fork(fileURLToPath(new URL(file, import.meta.url)), {
+    execArgv: [...loader, `--max-old-space-size=${SCAN_LIMITS.workerMemoryMb}`],
+    stdio: ['ignore', 'ignore', 'inherit', 'ipc'],
   });
 }
 
-/** Run from source (tests, `npm run check`), the worker needs tsx to load TypeScript; the built one does not. */
-function getWorkerEntry() {
-  if (!import.meta.url.endsWith('.ts')) return { file: './technicalAssessmentWorker.js', execArgv: [] };
-  const tsx = pathToFileURL(createRequire(import.meta.url).resolve('tsx')).href;
-  return { file: './technicalAssessmentWorker.ts', execArgv: ['--import', tsx] };
+async function stopWorker(worker: ChildProcess): Promise<void> {
+  worker.removeAllListeners('message');
+  const isRunning = worker.pid !== undefined && worker.exitCode === null && worker.signalCode === null;
+  if (!isRunning) return;
+  worker.kill('SIGKILL');
+  await once(worker, 'exit');
 }
 
-function waitForAssessment(worker: Worker, onProgress: EngineOptions['onProgress']): Promise<TechnicalAssessment> {
+function waitForAssessment(
+  worker: ChildProcess,
+  onProgress: EngineOptions['onProgress'],
+): Promise<TechnicalAssessment> {
   const { technicalHardLimitMs, workerMemoryMb } = SCAN_LIMITS;
   return new Promise((resolve, reject) => {
     const hardLimit = setTimeout(
@@ -53,20 +67,23 @@ function waitForAssessment(worker: Worker, onProgress: EngineOptions['onProgress
     );
     worker.on('message', (message: WorkerMessage) => {
       if ('assessment' in message) return resolve(message.assessment);
+      if ('failure' in message) return reject(Object.assign(new Error(message.failure.message), { name: message.failure.name }));
       try {
         onProgress?.(message.progress);
       } catch (error) {
         reject(error);
       }
     });
-    worker.on('error', (error: NodeJS.ErrnoException) => {
-      const isOutOfMemory = error.code === 'ERR_WORKER_OUT_OF_MEMORY';
-      reject(isOutOfMemory ? new ScanStoppedError(`${workerMemoryMb} MB of memory`) : error);
-    });
-    worker.on('exit', (code) => {
+    worker.on('error', reject);
+    worker.on('exit', (code, signal) => {
       clearTimeout(hardLimit);
       // Changes nothing after a result or an error: the promise has settled by then.
-      reject(new Error(`The scan's worker exited with code ${code} before it finished`));
+      const isOutOfMemory = OUT_OF_MEMORY_EXITS.includes(signal ?? code ?? '');
+      reject(
+        isOutOfMemory
+          ? new ScanStoppedError(`${workerMemoryMb} MB of memory`)
+          : new Error(`The scan's worker ended (${signal ?? code}) before it finished`),
+      );
     });
   });
 }
